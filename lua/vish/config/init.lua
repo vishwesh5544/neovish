@@ -1,0 +1,5 @@
+require("vish.config.lazy")
+require("vish.config.mason")
+require("vish.config.telescope")
+require("vish.config.treesitter")
+require("vish.config.null-ls")
