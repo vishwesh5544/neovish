@@ -10,8 +10,10 @@ Welcome to **neovish**, my personalized Neovim configuration. This setup is desi
 - **Autocomplete**: Powerful autocompletion with `nvim-cmp`.
 - **File Navigation**: Efficient file navigation using `Telescope`.
 - **Syntax Highlighting**: Enhanced syntax highlighting with `nvim-treesitter`.
-- **Code Formatting**: Automatic code formatting with `null-ls.nvim`.
+- **Code Formatting**: Automatic code formatting with `mason-lspconfig`.
 - **Clipboard Integration**: Seamless copy-paste functionality with system clipboard.
+- **Dark Theme**: Beautiful Catppuccin theme for a visually pleasing experience.
+- **AI Assistance**: Integrated GitHub Copilot for AI-powered code suggestions.
 
 ## Installation
 
@@ -290,35 +292,6 @@ lspconfig.tsserver.setup {}
 
 ```
 
-### null-ls.lua
-
-```lua
--- Null-ls setup
-local null_ls = require("null-ls")
-
-null_ls.setup({
-  sources = {
-    null_ls.builtins.formatting.prettier,  -- JS, TS, JSON, etc.
-    null_ls.builtins.formatting.stylua,    -- Lua
-    null_ls.builtins.formatting.black,     -- Python
-    -- Add more formatters as needed
-  },
-  on_attach = function(client, bufnr)
-    if client.server_capabilities.document_formatting then
-      vim.api.nvim_clear_autocmds({ group = "LspFormatting", buffer = bufnr })
-      vim.api.nvim_create_autocmd("BufWritePre", {
-        group = vim.api.nvim_create_augroup("LspFormatting", { clear = true }),
-        buffer = bufnr,
-        callback = function()
-          vim.lsp.buf.formatting_sync()
-        end,
-      })
-    end
-  end,
-})
-
-```
-
 ### telescope.lua
 
 ```lua
@@ -361,7 +334,3 @@ require'nvim-treesitter.configs'.setup {
 ## Contributing
 
 Feel free to fork this repository and make your own changes. Pull requests are welcome!
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
