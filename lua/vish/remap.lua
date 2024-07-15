@@ -101,3 +101,7 @@ vim.opt.autoindent = true      -- Copy indent from current line when starting a 
 vim.opt.number = true          -- Show line numbers
 vim.opt.relativenumber = false  -- Show relative line numbers
 
+
+-- Copilot keybindings
+vim.api.nvim_set_keymap("i", "<C-J>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
+vim.g.copilot_no_tab_map = true

@@ -1,0 +1,15 @@
+# Ignore swap files
+*.swp
+*.swo
+
+# Ignore undo files
+*.un~
+
+# Ignore backup files
+*.bak
+*.tmp
+
+# Ignore specific directories or files
+# Example:
+# plugin_dir/
+# another_file.lua

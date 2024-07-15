@@ -8,10 +8,11 @@ return {
   { "williamboman/mason.nvim" },
   { "williamboman/mason-lspconfig.nvim" },
   { "nvim-telescope/telescope.nvim", requires = { {'nvim-lua/plenary.nvim'} } },
-
   { "folke/neodev.nvim" },
+  { "github/copilot.vim" },
+  --{ "jose-elias-alvarez/null-ls.nvim" },
 
-	
-  { "jose-elias-alvarez/null-ls.nvim" },
+  { "catppuccin/nvim", name = "catppuccin", priority = 1000 }
 }
+
 
