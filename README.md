@@ -26,7 +26,7 @@ Welcome to **neovish**, my personalized Neovim configuration. This setup is desi
 1. **Clone the Repository**
 
    ```sh
-   git clone https://github.com/your-username/neovish.git ~/.config/nvim
+   git clone https://github.com/vishwesh5544/neovish.git ~/.config/nvim
    ```
 
 2. **Install Plugins**
@@ -77,32 +77,291 @@ Welcome to **neovish**, my personalized Neovim configuration. This setup is desi
 
 ## Configuration Overview
 
-### Plugins
+### init.lua
 
-- **[nvim-treesitter/nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)**: Enhanced syntax highlighting
-- **[neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)**: LSP configurations
-- **[hrsh7th/nvim-cmp](https://github.com/hrsh7th/nvim-cmp)**: Autocompletion
-- **[L3MON4D3/LuaSnip](https://github.com/L3MON4D3/LuaSnip)**: Snippet engine
-- **[williamboman/mason.nvim](https://github.com/williamboman/mason.nvim)**: Manage external tools
-- **[williamboman/mason-lspconfig.nvim](https://github.com/williamboman/mason-lspconfig.nvim)**: Bridge between Mason and LSPconfig
-- **[nvim-telescope/telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)**: Fuzzy finder
-- **[jose-elias-alvarez/null-ls.nvim](https://github.com/jose-elias-alvarez/null-ls.nvim)**: Code formatting and diagnostics
+```lua
+-- Set mapleader before loading any plugins
+vim.g.mapleader = " "
+vim.g.maplocalleader = "\\"
 
-### LSP Servers
+require("vish.config")
+require("vish.remap")
 
-- **lua_ls**: Lua
-- **pyright**: Python
-- **tsserver**: TypeScript
 
-### Indentation
+```
 
-- **Spaces**: 4 spaces per indentation level
+### remap.lua
 
-### Line Numbers
+```lua
+local map = vim.api.nvim_set_keymap
+local default_opts = {noremap = true, silent = true}
 
-- **Absolute Line Numbers**: Enabled
-- **Relative Line Numbers**: Enabled
+---------------------------------------
+----- CLIPBOARD REMAP STARTS ----------
+vim.opt.clipboard:append('unnamedplus')
+
+-- Map Ctrl+C to copy in visual mode
+vim.api.nvim_set_keymap('v', '<C-c>', '"+y', { noremap = true, silent = true })
+
+-- Map Ctrl+V to paste in normal and insert mode
+vim.api.nvim_set_keymap('n', '<C-v>', '"+p', { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap('i', '<C-v>', '<C-r>+', { noremap = true, silent = true })
+
+----- CLIPBOARD REMAP ENDS -----------
+--------------------------------------
+
+
+-- Keybindings for Telescope
+map('n', '<Leader>ff', '<cmd>Telescope find_files<cr>', default_opts)
+map('n', '<Leader>fg', '<cmd>Telescope live_grep<cr>', default_opts)
+map('n', '<Leader>fb', '<cmd>Telescope buffers<cr>', default_opts)
+map('n', '<Leader>fh', '<cmd>Telescope help_tags<cr>', default_opts)
+
+-- Additional keybindings
+vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, default_opts)
+
+-- LSP Keymaps
+local on_attach = function(client, bufnr)
+  local buf_map = function(mode, lhs, rhs, opts)
+    local options = { noremap = true, silent = true }
+    if opts then
+      options = vim.tbl_extend('force', options, opts)
+    end
+    vim.api.nvim_buf_set_keymap(bufnr, mode, lhs, rhs, options)
+  end
+
+ -- Enable completion triggered by <c-x><c-o>
+  vim.bo[bufnr].omnifunc = 'v:lua.vim.lsp.omnifunc'
+
+  -- LSP mappings
+  buf_map('n', 'gD', '<Cmd>lua vim.lsp.buf.declaration()<CR>')
+  buf_map('n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>')
+  buf_map('n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>')
+  buf_map('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>')
+  buf_map('n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>')
+  buf_map('n', '<Leader>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>')
+  buf_map('n', '<Leader>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>')
+  buf_map('n', '<Leader>wl', '<cmd>lua vim.lsp.buf.list_workspace_folders()<CR>')
+  buf_map('n', '<Leader>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>')
+  buf_map('n', '<Leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>')
+  buf_map('n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>')
+  buf_map('n', '<Leader>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>')
+  buf_map('n', '<Leader>e', '<cmd>lua vim.diagnostic.open_float()<CR>')
+  buf_map('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>')
+  buf_map('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>')
+  buf_map('n', '<Leader>q', '<cmd>lua vim.diagnostic.setloclist()<CR>')
+  buf_map('n', '<Leader>f', '<cmd>lua vim.lsp.buf.formatting()<CR>')
+end
+
+-- Setup LSP servers with `on_attach` function
+local lspconfig = require('lspconfig')
+lspconfig.lua_ls.setup {
+  on_attach = on_attach,
+  settings = {
+    Lua = {
+      runtime = {
+        version = 'LuaJIT',
+        path = vim.split(package.path, ';'),
+      },
+      diagnostics = {
+        globals = {'vim'},
+      },
+      workspace = {
+        library = vim.api.nvim_get_runtime_file("", true),
+        checkThirdParty = false,
+      },
+      telemetry = {
+        enable = false,
+      },
+    },
+  },
+}
+
+lspconfig.pyright.setup {
+  on_attach = on_attach,
+}
+
+lspconfig.tsserver.setup {
+  on_attach = on_attach,
+}
+
+-- Indentation settings
+vim.opt.expandtab = true       -- Use spaces instead of tabs
+vim.opt.shiftwidth = 4         -- Number of spaces to use for each step of (auto)indent
+vim.opt.tabstop = 4            -- Number of spaces that a <Tab> in the file counts for
+vim.opt.smartindent = true     -- Make indenting smart
+vim.opt.autoindent = true      -- Copy indent from current line when starting a new line
+
+-- Line numbers
+vim.opt.number = true          -- Show line numbers
+vim.opt.relativenumber = false  -- Show relative line numbers
+
+
+```
+
+### lazy.lua
+
+```lua
+-- ~/.config/nvim/lua/vish/config/lazy.lua
+-- Bootstrap lazy.nvim
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+  if vim.v.shell_error ~= 0 then
+    vim.api.nvim_echo({
+      { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+      { out, "WarningMsg" },
+      { "\nPress any key to exit..." },
+    }, true, {})
+    vim.fn.getchar()
+    os.exit(1)
+  end
+end
+vim.opt.rtp:prepend(lazypath)
+
+-- Make sure to setup `mapleader` and `maplocalleader` before
+-- loading lazy.nvim so that mappings are correct.
+-- This is also a good place to setup other settings (vim.opt)
+vim.g.mapleader = " "
+vim.g.maplocalleader = "\\"
+
+-- Setup lazy.nvim
+require("lazy").setup({
+  spec = {
+    -- import your plugins
+    { import = "vish.plugins" },
+  },
+  -- Configure any other settings here. See the documentation for more details.
+  -- colorscheme that will be used when installing plugins.
+  install = { colorscheme = { "habamax" } },
+  -- automatically check for plugin updates
+  checker = { enabled = true },
+})
+
+```
+
+### mason.lua
+
+```lua
+-- Mason setup
+require("mason").setup()
+require("mason-lspconfig").setup({
+  ensure_installed = { "lua_ls", "pyright", "tsserver" },
+})
+
+
+-- Setup neodev before lspconfig
+require('neodev').setup({})
+
+
+-- Setup language servers using lspconfig
+local lspconfig = require("lspconfig")
+
+lspconfig.lua_ls.setup {
+	settings = {
+    Lua = {
+      runtime = {
+        -- Tell the language server which version of Lua you're using (most likely LuaJIT)
+        version = 'LuaJIT',
+        -- Setup your lua path
+        path = vim.split(package.path, ';'),
+      },
+      diagnostics = {
+        -- Get the language server to recognize the `vim` global
+        globals = {'vim'},
+      },
+      workspace = {
+        -- Make the server aware of Neovim runtime files
+        library = vim.api.nvim_get_runtime_file("", true),
+        checkThirdParty = false, -- Prevent prompting for unnecessary third-party libraries
+      },
+      -- Do not send telemetry data containing a randomized but unique identifier
+      telemetry = {
+        enable = false,
+      },
+    },
+  },
+
+}
+
+lspconfig.pyright.setup {}
+lspconfig.tsserver.setup {}
+
+```
+
+### null-ls.lua
+
+```lua
+-- Null-ls setup
+local null_ls = require("null-ls")
+
+null_ls.setup({
+  sources = {
+    null_ls.builtins.formatting.prettier,  -- JS, TS, JSON, etc.
+    null_ls.builtins.formatting.stylua,    -- Lua
+    null_ls.builtins.formatting.black,     -- Python
+    -- Add more formatters as needed
+  },
+  on_attach = function(client, bufnr)
+    if client.server_capabilities.document_formatting then
+      vim.api.nvim_clear_autocmds({ group = "LspFormatting", buffer = bufnr })
+      vim.api.nvim_create_autocmd("BufWritePre", {
+        group = vim.api.nvim_create_augroup("LspFormatting", { clear = true }),
+        buffer = bufnr,
+        callback = function()
+          vim.lsp.buf.formatting_sync()
+        end,
+      })
+    end
+  end,
+})
+
+```
+
+### telescope.lua
+
+```lua
+-- Telescope setup
+require('telescope').setup{
+  defaults = {
+    mappings = {
+      i = {
+        ["<C-n>"] = require('telescope.actions').move_selection_next,
+        ["<C-p>"] = require('telescope.actions').move_selection_previous,
+      },
+    },
+  }
+}
+
+```
+
+### treesitter.lua
+
+```lua
+
+-- ~/.config/nvim/lua/vish/config/lazy.lua
+
+require'nvim-treesitter.configs'.setup {
+  ensure_installed = {
+    "lua", "python", "typescript", "javascript", "html", "css", "json", "yaml",
+    "vimdoc", "luadoc", "vim", "markdown",
+  },
+  sync_install = false,  -- install languages synchronously (only applied to `ensure_installed`)
+  auto_install = true,  -- automatically install missing parsers when entering buffer
+  ignore_install = { "phpdoc" },  -- list of parsers to ignore installing (for example)
+  highlight = {
+    enable = true,  -- false will disable the whole extension
+    additional_vim_regex_highlighting = false,
+  },
+}
+
+```
 
 ## Contributing
 
 Feel free to fork this repository and make your own changes. Pull requests are welcome!
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
